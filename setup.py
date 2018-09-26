@@ -15,5 +15,5 @@ setup(name='portfolio_optimization',
           'numpy',
           'pandas',
           'seaborn'
-      ]
+      ],
 	  zip_safe=False)
