@@ -2,7 +2,7 @@ from base import AbstractPortfolioAllocation
 import numpy as np
 import pandas as pd
 from cvxopt import matrix, solvers
-from util import portfolio_performance
+from util import portfolio_performance, create_constraints
 import seaborn as sns
 import matplotlib.pyplot as plt
 plt.style.use('fivethirtyeight')
@@ -14,7 +14,11 @@ class MarkowitzPortfolioAllocation(AbstractPortfolioAllocation):
 				 targetVol=None):
 		self.__expectedReturn = expectedReturn
 		self.__assetsCovariance = assetsCovariance
-		self.__constraints = constraints
+		if constraints is not None:
+			self.__constraints = {}
+			self.__constraints['G'], self.__constraints['h'] = create_constraints(assetNames, constraints)
+		else:
+			self.__constraints = None
 		self.__riskFreeAsset = riskFreeAsset
 		self.__riskAversion = riskAversion
 		self.__targetReturn = targetReturn
@@ -201,6 +205,5 @@ class MarkowitzPortfolio:
 		ax.legend(labelspacing=0.8)
 		if path is not None:
 			plt.savefig(path)
-
 
 
