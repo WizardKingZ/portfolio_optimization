@@ -9,11 +9,4 @@ setup(name='portfolio_optimization',
 	  author_email='johnew.zhang@columbia.edu',
 	  license='Columbia',
 	  packages=['portfolio_optimization'],
-	  install_requires=[
-          'matplotlib',
-          'cvxopt',
-          'numpy',
-          'pandas',
-          'seaborn'
-      ],
 	  zip_safe=False)
