@@ -4,6 +4,7 @@ import pandas as pd
 from cvxopt import matrix, solvers
 from util import portfolio_performance, create_constraints
 import seaborn as sns
+from scipy.stats import norm
 import matplotlib.pyplot as plt
 plt.style.use('fivethirtyeight')
 
@@ -124,25 +125,25 @@ class MarkowitzPortfolioAllocation(AbstractPortfolioAllocation):
 
 class MarkowitzPortfolio:
 	def __init__(self, assetReturns, assetCovariance, assetNames, riskFreeRate=None):
-		self.__assetReturns = assetReturns
-		self.__assetCovariance = assetCovariance
-		self.__assetNames = assetNames
-		self.__riskFreeRate = riskFreeRate
-
+		self.assetReturns = assetReturns
+		self.assetCovariance = assetCovariance
+		self.assetNames = list(assetNames)
+		self.riskFreeRate = riskFreeRate
+		self.numOfAssets = len(assetNames)
 		## set up a basic markowitz portfolio
-		self.__portfolio = MarkowitzPortfolioAllocation(self.__assetReturns, self.__assetCovariance, self.__assetNames, riskFreeAsset=self.__riskFreeRate)
+		self.portfolio = MarkowitzPortfolioAllocation(self.assetReturns, self.assetCovariance, self.assetNames, riskFreeAsset=self.riskFreeRate)
 
 
 	def get_portfolio_performance(self):
-		return self.__portfolio.get_portfolio_performance(self.__current_allocation['weights'])
+		return self.portfolio.get_portfolio_performance(self.current_allocation['weights'])
 
 	def get_min_variance_portfolio(self):
-		self.__current_allocation = self.__portfolio.get_min_variance_portfolio()
-		return self.__current_allocation
+		self.current_allocation = self.portfolio.get_min_variance_portfolio()
+		return self.current_allocation
 
 	def get_tangency_portfolio(self):
-		self.__current_allocation = self.__portfolio.get_tangency_portfolio()
-		return self.__current_allocation
+		self.current_allocation = self.portfolio.get_tangency_portfolio()
+		return self.current_allocation
 
 	def get_allocations(self, configuration):
 		"""
@@ -154,14 +155,14 @@ class MarkowitzPortfolio:
 			'targetVol':
  		}
 		"""
-		self.__portfolio = MarkowitzPortfolioAllocation(self.__assetReturns, self.__assetCovariance, self.__assetNames, riskFreeAsset=self.__riskFreeRate, **configuration)
-		self.__current_allocation = self.__portfolio.calculate_weights()
-		return self.__current_allocation
+		self.portfolio = MarkowitzPortfolioAllocation(self.assetReturns, self.assetCovariance, self.assetNames, riskFreeAsset=self.riskFreeRate, **configuration)
+		self.current_allocation = self.portfolio.calculate_weights()
+		return self.current_allocation
 
 	def display_efficient_frontier(self, assetsAnnotation=False, specialPortfolioAnnotation=False, addTangencyLine=False, figsize=(10, 7), upper_bound=0.34, step=50, path=None):
 		## naive portfolio
-		portfolio = MarkowitzPortfolioAllocation(self.__assetReturns, self.__assetCovariance, self.__assetNames, riskFreeAsset=self.__riskFreeRate)
-		if self.__riskFreeRate is not None:
+		portfolio = MarkowitzPortfolioAllocation(self.assetReturns, self.assetCovariance, self.assetNames, riskFreeAsset=self.riskFreeRate)
+		if self.riskFreeRate is not None:
 			tangency_portfolio = portfolio.get_tangency_portfolio()
 			rp, sdp = portfolio.get_portfolio_performance(tangency_portfolio['weights'])
 
@@ -171,18 +172,18 @@ class MarkowitzPortfolio:
 		fig, ax = plt.subplots(figsize=figsize)
 
 		if assetsAnnotation:
-			for i, txt in enumerate(self.__assetNames):
-				ax.annotate(txt, (np.sqrt(self.__assetCovariance[i, i]),self.__assetReturns[i]), xytext=(10,0), textcoords='offset points')
+			for i, txt in enumerate(self.assetNames):
+				ax.annotate(txt, (np.sqrt(self.assetCovariance[i, i]),self.assetReturns[i]), xytext=(10,0), textcoords='offset points')
 		if specialPortfolioAnnotation:
-			if self.__riskFreeRate is not None:
+			if self.riskFreeRate is not None:
 				ax.scatter(sdp,rp,marker='*',color='r',s=50, label='Maximum Sharpe ratio portfolio')
-				ax.scatter(0, self.__riskFreeRate, marker='*',color='b',s=50, label='Risk-free rate')
+				ax.scatter(0, self.riskFreeRate, marker='*',color='b',s=50, label='Risk-free rate')
 			ax.scatter(sdp_min,rp_min,marker='*',color='g',s=50, label='Minimum volatility portfolio')
 
 		targets = np.linspace(rp_min, upper_bound, step)
 		target_portfolio_vols = []
 		for target in targets:
-			target_portfolio = MarkowitzPortfolioAllocation(self.__assetReturns, self.__assetCovariance, self.__assetNames, targetReturn=target)
+			target_portfolio = MarkowitzPortfolioAllocation(self.assetReturns, self.assetCovariance, self.assetNames, targetReturn=target)
 			target_portfolio_weights = target_portfolio.calculate_weights()
 			_, target_portfolio_vol = target_portfolio.get_portfolio_performance(target_portfolio_weights['weights'])
 			target_portfolio_vols.append(target_portfolio_vol)
@@ -194,16 +195,73 @@ class MarkowitzPortfolio:
 		ax.set_xlabel('$\sigma(r_p)$')
 		ax.set_ylabel('$E[r_p]$')
 		ax.set_xlim(xmin = -0.01)
-		if self.__riskFreeRate is not None:
-			ymin = min(self.__riskFreeRate, min(self.__assetReturns), rp_min)*0.8
+		if self.riskFreeRate is not None:
+			ymin = min(self.riskFreeRate, min(self.assetReturns), rp_min)*0.8
 		else:
-			ymin = min(min(self.__assetReturns), rp_min)*0.8
+			ymin = min(min(self.assetReturns), rp_min)*0.8
 		if addTangencyLine:
-			y = np.linspace(self.__riskFreeRate, upper_bound, step)
-		 	ax.plot(sdp/(rp-self.__riskFreeRate)*(y-self.__riskFreeRate), y, linestyle='-', color='blue', label='capital market line', linewidth=.5)
+			y = np.linspace(self.riskFreeRate, upper_bound, step)
+		 	ax.plot(sdp/(rp-self.riskFreeRate)*(y-self.riskFreeRate), y, linestyle='-', color='blue', label='capital market line', linewidth=.5)
 		ax.set_ylim(ymin = ymin)
 		ax.legend(labelspacing=0.8)
 		if path is not None:
 			plt.savefig(path)
 
+class BlackLittermanPortfolio(MarkowitzPortfolio):
+	def __get_variance(self, mean, confidence_level, plusminus):
+		val = norm.isf((1. - confidence_level*0.01)/2.)
+		return (mean * plusminus * 0.01 / val)**2
+
+	def __create_view(self, views):
+		Q = []
+		Omega = []
+		P = []
+		for view in views.keys(): 
+			Q.append(views[view]['scale'])
+			Omega.append(self.__get_variance(views[view]['scale'], views[view]['confidence'], views[view]['plusminus%']))
+			p = np.zeros(self.numOfAssets)
+			if views[view]['type'] == 'absolute':
+				p[self.assetNames.index(view)] = 1
+			else:
+				for idx, v in enumerate(view.split('|')):
+					p[self.assetNames.index(v)] = views[view]['weights'][idx]
+			P.append(p)
+  		return np.array(Q), np.stack(P), np.diag(Omega)
+
+	def update_views(self, views, tau):
+		"""
+		views:  a dictionary of news on each asset and its associate confidence
+			for example: 
+				{'MKT': {'type': 'absolute', 'scale': 0.1, 'confidence': 0.01},
+				 'SML|MKT' : {'type': 'relative', 'scale': -0.1, 'confidence': 0.01, 'weights': [1, -1]}}
+		tau: scalor representing the precision of the prior
+		"""
+		## create cache for the equilibrium view
+		try:
+			if self.equilibriumAssetReturns is None:
+				self.equilibriumAssetReturns = self.assetReturns
+		except:
+			self.equilibriumAssetReturns = self.assetReturns
+
+		invAssetCovariance = np.linalg.inv(self.assetCovariance)
+		Q, P, Omega = self.__create_view(views)
+		pop = np.dot(np.dot(P.T, np.linalg.inv(Omega)), P)
+		v1 = np.linalg.inv(invAssetCovariance + tau*pop)
+		v2 = np.dot(v1, tau*np.dot(P.T, np.linalg.inv(Omega)))
+		v1 = np.dot(v1, invAssetCovariance)
+		self.assetReturns = np.dot(v1, self.equilibriumAssetReturns) + np.dot(v2, Q)
+		## reset portfolio
+		self.portfolio = MarkowitzPortfolioAllocation(self.assetReturns, self.assetCovariance, self.assetNames, riskFreeAsset=self.riskFreeRate)
+		
+	def reset(self):
+		"""
+		remove views 
+		"""
+		try:
+			self.assetReturns = self.equilibriumAssetReturns
+			self.equilibriumAssetReturns = None
+			## reset portfolio
+			self.portfolio = MarkowitzPortfolioAllocation(self.assetReturns, self.assetCovariance, self.assetNames, riskFreeAsset=self.riskFreeRate)
+		except:
+			print "No view present, so do not need to reset"
 
