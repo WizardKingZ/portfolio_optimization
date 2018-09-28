@@ -7,6 +7,6 @@ setup(name='portfolio_optimization',
 	  url='https://github.com/WizardKingZ/portfolio_optimization',
 	  author='WizardKingZ',
 	  author_email='johnew.zhang@columbia.edu',
-	  license='Columbia',
+	  license='MIT',
 	  packages=['portfolio_optimization'],
 	  zip_safe=False)
