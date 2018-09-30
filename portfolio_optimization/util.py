@@ -14,5 +14,5 @@ def create_constraints(assets, constraints):
 	h = np.hstack(([-constraints[asset][0] for asset in assets if asset in constraints.keys()],
 				  [constraints[asset][1] for asset in assets if asset in constraints.keys()]))
 	G = np.identity(N)[[assets.index(asset) for asset in assets if asset in constraints.keys()],:]
-	G = np.vstack([G, G])
+	G = np.vstack([-G, G])
 	return G, h
