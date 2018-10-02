@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from cvxopt import matrix, solvers
 from util import portfolio_performance, create_constraints
-import seaborn as sns
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 plt.style.use('fivethirtyeight')
