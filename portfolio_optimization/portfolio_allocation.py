@@ -200,7 +200,7 @@ class MarkowitzPortfolio:
 			ymin = min(min(self.assetReturns), rp_min)*0.8
 		if addTangencyLine:
 			y = np.linspace(self.riskFreeRate, upper_bound, step)
-		 	ax.plot(sdp/(rp-self.riskFreeRate)*(y-self.riskFreeRate), y, linestyle='-', color='blue', label='capital market line', linewidth=.5)
+			ax.plot(sdp/(rp-self.riskFreeRate)*(y-self.riskFreeRate), y, linestyle='-', color='blue', label='capital market line', linewidth=.5)
 		ax.set_ylim(ymin = ymin)
 		ax.legend(labelspacing=0.8)
 		if path is not None:
@@ -225,7 +225,7 @@ class BlackLittermanPortfolio(MarkowitzPortfolio):
 				for idx, v in enumerate(view.split('|')):
 					p[self.assetNames.index(v)] = views[view]['weights'][idx]
 			P.append(p)
-  		return np.array(Q), np.stack(P), np.diag(Omega)
+		return np.array(Q), np.stack(P), np.diag(Omega)
 
 	def update_views(self, views, tau):
 		"""
