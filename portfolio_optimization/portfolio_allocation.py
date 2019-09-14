@@ -78,7 +78,7 @@ class MarkowitzPortfolioAllocation(AbstractPortfolioAllocation):
 			else:
 				sol = solvers.qp(Q, p, G=G, h=h, A=A, b=b, kktsolver='ldl')
 			if sol['status'] != 'optimal':
-				print "Convergence problem"
+				print("Convergence problem")
 			return np.array(sol['x']).reshape(self.__numOfAssets)
 
 	def __constrainted_weights(self):
@@ -110,7 +110,7 @@ class MarkowitzPortfolioAllocation(AbstractPortfolioAllocation):
 		else:
 			sol = solvers.qp(Q, p, G=G, h=h, A=A, b=b, kktsolver='ldl') #, solver='mosek', kktsolver='ldl')
 		if sol['status'] != 'optimal':
-			print "Convergence problem"
+			print("Convergence problem")
 		return np.array(sol['x']).reshape(self.__numOfAssets)
 
 	def calculate_weights(self):
@@ -262,5 +262,5 @@ class BlackLittermanPortfolio(MarkowitzPortfolio):
 			## reset portfolio
 			self.portfolio = MarkowitzPortfolioAllocation(self.assetReturns, self.assetCovariance, self.assetNames, riskFreeAsset=self.riskFreeRate)
 		except:
-			print "No view present, so do not need to reset"
+			print("No view present, so do not need to reset")
 
