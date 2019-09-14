@@ -1,8 +1,8 @@
-from base import AbstractPortfolioAllocation
+from .base import AbstractPortfolioAllocation
 import numpy as np
 import pandas as pd
 from cvxopt import matrix, solvers
-from util import portfolio_performance, create_constraints
+from .util import portfolio_performance, create_constraints
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 plt.style.use('fivethirtyeight')
